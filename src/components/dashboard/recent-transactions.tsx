@@ -17,24 +17,26 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
     return <p className="text-muted-foreground text-sm">No transactions yet.</p>
   }
   return (
-    <Card>
+    <Card className="shadow-(--shadow-card) border-border/80 overflow-hidden">
       <CardContent className="p-0">
-        <table className="w-full text-sm">
+        <table className="data-table">
           <thead>
-            <tr className="border-b text-left text-muted-foreground">
-              <th className="p-3 font-medium">Type</th>
-              <th className="p-3 font-medium">Status</th>
-              <th className="p-3 font-medium">Currency</th>
-              <th className="p-3 font-medium">Date</th>
+            <tr>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Currency</th>
+              <th>Date</th>
             </tr>
           </thead>
           <tbody>
             {recent.map((tx, i) => (
-              <tr key={tx.id ?? `tx-${i}`} className="border-b last:border-0">
-                <td className="p-3">
-                  <Badge variant="outline">{tx.type}</Badge>
+              <tr key={tx.id ?? `tx-${i}`}>
+                <td>
+                  <Badge variant="outline" className="font-medium">
+                    {tx.type}
+                  </Badge>
                 </td>
-                <td className="p-3">
+                <td>
                   <Badge
                     variant={
                       tx.status === "completed"
@@ -47,8 +49,8 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
                     {tx.status}
                   </Badge>
                 </td>
-                <td className="p-3">{tx.currency}</td>
-                <td className="p-3 text-muted-foreground">{formatDate(tx.createdAt)}</td>
+                <td>{tx.currency}</td>
+                <td className="text-muted-foreground">{formatDate(tx.createdAt)}</td>
               </tr>
             ))}
           </tbody>

@@ -6,30 +6,36 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.141 0.005 285.823);
+    --background: oklch(0.985 0.002 286);
+    --foreground: oklch(0.145 0.006 285.823);
     --card: oklch(1 0 0);
-    --card-foreground: oklch(0.141 0.005 285.823);
+    --card-foreground: oklch(0.145 0.006 285.823);
     --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.141 0.005 285.823);
-    --primary: oklch(0.21 0.006 285.885);
+    --popover-foreground: oklch(0.145 0.006 285.823);
+    --primary: oklch(0.32 0.04 265);
     --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.967 0.001 286.375);
-    --secondary-foreground: oklch(0.21 0.006 285.885);
-    --muted: oklch(0.967 0.001 286.375);
-    --muted-foreground: oklch(0.552 0.016 285.938);
-    --accent: oklch(0.21 0.006 285.885);
+    --secondary: oklch(0.965 0.004 286);
+    --secondary-foreground: oklch(0.28 0.01 286);
+    --muted: oklch(0.965 0.004 286);
+    --muted-foreground: oklch(0.50 0.012 286);
+    --accent: oklch(0.32 0.04 265);
     --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.92 0.004 286.32);
-    --input: oklch(0.92 0.004 286.32);
-    --ring: oklch(0.705 0.015 286.067);
+    --destructive: oklch(0.55 0.22 25);
+    --border: oklch(0.91 0.006 286);
+    --input: oklch(0.91 0.006 286);
+    --ring: oklch(0.32 0.04 265);
     --chart-1: oklch(0.646 0.222 41.116);
     --chart-2: oklch(0.6 0.118 184.704);
     --chart-3: oklch(0.398 0.07 227.392);
     --chart-4: oklch(0.828 0.189 84.429);
     --chart-5: oklch(0.769 0.188 70.08);
-    --radius: 0.45rem;
+    --radius: 0.5rem;
+    --page-padding-y: 1.5rem;
+    --page-padding-x: 1rem;
+    --content-max-w: 56rem;
+    --header-height: 3.25rem;
+    --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.04);
+    --shadow-card: 0 1px 3px oklch(0 0 0 / 0.06);
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.141 0.005 285.823);
     --sidebar-primary: oklch(0.21 0.006 285.885);
@@ -119,11 +125,65 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
-  body {
-    @apply font-sans bg-background text-foreground;
-    }
+  }
   html {
-    @apply font-sans;
-    }
+    @apply font-sans antialiased;
+  }
+  body {
+    @apply font-sans bg-background text-foreground text-sm;
+  }
+}
+
+/* App-wide layout and typography */
+.page-container {
+  width: 100%;
+  max-width: var(--content-max-w);
+  margin-inline: auto;
+  padding: var(--page-padding-y) var(--page-padding-x);
+}
+.page-title {
+  @apply text-xl font-semibold tracking-tight text-foreground;
+  margin-bottom: 0.25rem;
+}
+.page-description {
+  @apply text-muted-foreground text-sm;
+}
+.section-title {
+  @apply text-sm font-medium text-muted-foreground tracking-tight;
+  margin-bottom: 0.5rem;
+}
+.page-section {
+  margin-bottom: 1.5rem;
+}
+.page-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Table styling used in cards */
+.data-table {
+  @apply w-full text-sm;
+}
+.data-table thead tr {
+  @apply border-b border-border bg-muted/40;
+}
+.data-table thead th:first-child {
+  border-radius: var(--radius) 0 0 0;
+}
+.data-table thead th:last-child {
+  border-radius: 0 var(--radius) 0 0;
+}
+.data-table th {
+  @apply px-4 py-3 text-left font-medium text-muted-foreground;
+}
+.data-table tbody tr {
+  @apply border-b border-border/80 transition-colors last:border-0 hover:bg-muted/30;
+}
+.data-table td {
+  @apply px-4 py-3;
+}
+.data-table tbody tr:last-child td:first-child {
+  border-radius: 0 0 0 var(--radius);
+}
+.data-table tbody tr:last-child td:last-child {
+  border-radius: 0 0 var(--radius) 0;
 }

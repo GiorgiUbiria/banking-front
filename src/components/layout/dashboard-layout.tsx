@@ -1,11 +1,20 @@
-import { Link, useNavigate } from "react-router-dom"
+import { NavLink, useNavigate } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
 import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
 }
+
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  cn(
+    "text-sm font-medium transition-colors rounded-md px-3 py-2",
+    isActive
+      ? "text-foreground bg-muted"
+      : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+  )
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, clearAuth } = useAuth()
@@ -19,22 +28,27 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="border-b bg-card">
-        <div className="container flex h-12 items-center justify-between">
-          <nav className="flex items-center gap-4">
-            <Link to="/" className="text-sm font-medium hover:underline">
+    <div className="min-h-screen flex flex-col bg-background">
+      <header
+        className="sticky top-0 z-10 border-b border-border bg-card/95 backdrop-blur supports-backdrop-filter:bg-card/80"
+        style={{ boxShadow: "var(--shadow-sm)" }}
+      >
+        <div className="container flex items-center justify-between" style={{ height: "var(--header-height)" }}>
+          <nav className="flex items-center gap-1">
+            <NavLink to="/" end className={navLinkClass}>
               Dashboard
-            </Link>
-            <Link to="/transactions" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+            </NavLink>
+            <NavLink to="/transactions" className={navLinkClass}>
               Transactions
-            </Link>
-            <Link to="/ledger" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+            </NavLink>
+            <NavLink to="/ledger" className={navLinkClass}>
               Ledger
-            </Link>
+            </NavLink>
           </nav>
           <div className="flex items-center gap-3">
-            <span className="text-muted-foreground text-sm">{user?.name ?? user?.email}</span>
+            <span className="text-muted-foreground text-sm truncate max-w-[180px] sm:max-w-none">
+              {user?.name ?? user?.email}
+            </span>
             <Button variant="outline" size="sm" onClick={handleLogout}>
               Log out
             </Button>

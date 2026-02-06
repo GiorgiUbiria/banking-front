@@ -216,21 +216,21 @@ export function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <div className="container py-6 space-y-8">
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
+      <div className="page-container space-y-8">
+        <h1 className="page-title">Dashboard</h1>
 
-        <section>
-          <h2 className="text-sm font-medium text-muted-foreground mb-3">Balances</h2>
+        <section className="page-section">
+          <h2 className="section-title">Balances</h2>
           <BalanceCards accounts={accounts} isLoading={accountsLoading} />
         </section>
 
-        <section>
-          <h2 className="text-sm font-medium text-muted-foreground mb-3">Recent transactions</h2>
+        <section className="page-section">
+          <h2 className="section-title">Recent transactions</h2>
           <RecentTransactions transactions={transactions} isLoading={transactionsLoading} />
         </section>
 
-        <section>
-          <Card>
+        <section className="page-section">
+          <Card className="shadow-(--shadow-card)">
             <CardHeader>
               <CardTitle>Transfer</CardTitle>
               <CardDescription>Send money to another account (same currency).</CardDescription>
@@ -318,8 +318,8 @@ export function DashboardPage() {
           </Card>
         </section>
 
-        <section>
-          <Card>
+        <section className="page-section">
+          <Card className="shadow-(--shadow-card)">
             <CardHeader>
               <CardTitle>Exchange</CardTitle>
               <CardDescription>

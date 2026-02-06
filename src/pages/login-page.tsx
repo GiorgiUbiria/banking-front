@@ -1,9 +1,9 @@
 import { useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
-import { z } from "zod"
 import { login, getMe } from "@/api"
 import { setAuthToken } from "@/lib/api-client"
+import { loginSchema, type LoginFormValues } from "@/lib/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { Button } from "@/components/ui/button"
 import {
@@ -21,13 +21,6 @@ import {
   FieldSet,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-
-const loginSchema = z.object({
-  email: z.email("Invalid email address"),
-  password: z.string().min(1, "Password is required"),
-})
-
-type LoginFormValues = z.infer<typeof loginSchema>
 
 export function LoginPage() {
   const navigate = useNavigate()

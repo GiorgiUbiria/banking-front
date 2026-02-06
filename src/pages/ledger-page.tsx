@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { DashboardLayout } from "@/components/dashboard-layout"
+import { DashboardLayout } from "@/components/layout"
 import { useLedger } from "@/hooks/use-ledger"
 import { formatCurrency, formatDate } from "@/lib/format"
 import { Card, CardContent } from "@/components/ui/card"

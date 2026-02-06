@@ -1,7 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import { QueryClientProvider } from "@tanstack/react-query"
 import { queryClient } from "@/lib/query-client"
-import { ProtectedRoute } from "@/components/protected-route"
+import { ProtectedRoute } from "@/components/layout"
 import { LoginPage } from "@/pages/login-page"
 import { DashboardPage } from "@/pages/dashboard-page"
 import { TransactionsPage } from "@/pages/transactions-page"

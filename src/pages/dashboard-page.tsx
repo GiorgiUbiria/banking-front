@@ -1,16 +1,9 @@
 import { useState } from "react"
-import { z } from "zod"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+import { DashboardLayout } from "@/components/layout"
+import { BalanceCards } from "@/components/dashboard/balance-cards"
+import { RecentTransactions } from "@/components/dashboard/recent-transactions"
+import { TransferConfirmDialog } from "@/components/dashboard/transfer-confirm-dialog"
+import { ExchangeConfirmDialog } from "@/components/dashboard/exchange-confirm-dialog"
 import {
   Card,
   CardContent,
@@ -34,35 +27,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
 import { useAccounts } from "@/hooks/use-accounts"
 import { useTransactions } from "@/hooks/use-transactions"
 import { useTransfer } from "@/hooks/use-transfer"
 import { useExchange } from "@/hooks/use-exchange"
-import { formatCurrency, formatDate } from "@/lib/format"
+import { formatCurrency } from "@/lib/format"
+import { USD_EUR_RATE } from "@/lib/constants"
+import { transferSchema, exchangeSchema } from "@/lib/schemas"
 import type { Account, TransferRequest } from "@/types/api"
-
-const USD_EUR_RATE = 0.92
-
-const transferSchema = z.object({
-  from_account_id: z.number({ message: "Select source account" }),
-  to_account_id: z.coerce.number().int().positive("Enter a valid recipient account ID"),
-  amount: z
-    .string()
-    .min(1, "Amount is required")
-    .refine((v) => /^\d+(\.\d{1,2})?$/.test(v), "Use up to 2 decimal places")
-    .refine((v) => Number(v) > 0, "Amount must be greater than 0"),
-})
-
-const exchangeSchema = z.object({
-  from_account_id: z.number({ message: "Select source currency" }),
-  to_account_id: z.number({ message: "Select target currency" }),
-  amount: z
-    .string()
-    .min(1, "Amount is required")
-    .refine((v) => /^\d+(\.\d{1,2})?$/.test(v), "Use up to 2 decimal places")
-    .refine((v) => Number(v) > 0, "Amount must be greater than 0"),
-})
 
 export function DashboardPage() {
   const { data: accountsData, isLoading: accountsLoading } = useAccounts()
@@ -72,7 +44,6 @@ export function DashboardPage() {
 
   const accounts = Array.isArray(accountsData) ? accountsData : []
   const transactions = Array.isArray(transactionsData) ? transactionsData : []
-  const recentTransactions = transactions.slice(0, 5)
 
   const [transferToId, setTransferToId] = useState("")
   const [transferAmount, setTransferAmount] = useState("")
@@ -248,73 +219,14 @@ export function DashboardPage() {
       <div className="container py-6 space-y-8">
         <h1 className="text-2xl font-semibold">Dashboard</h1>
 
-        {/* Balances */}
         <section>
           <h2 className="text-sm font-medium text-muted-foreground mb-3">Balances</h2>
-          {accountsLoading ? (
-            <p className="text-muted-foreground text-sm">Loading…</p>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 max-w-md">
-              {accounts.map((acc, i) => (
-                <Card key={acc.id ?? `account-${i}`} size="sm">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">{acc.currency}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-xl font-semibold">{formatCurrency(acc.balance, acc.currency)}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+          <BalanceCards accounts={accounts} isLoading={accountsLoading} />
         </section>
 
         <section>
           <h2 className="text-sm font-medium text-muted-foreground mb-3">Recent transactions</h2>
-          {transactionsLoading ? (
-            <p className="text-muted-foreground text-sm">Loading…</p>
-          ) : recentTransactions.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No transactions yet.</p>
-          ) : (
-            <Card>
-              <CardContent className="p-0">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-muted-foreground">
-                      <th className="p-3 font-medium">Type</th>
-                      <th className="p-3 font-medium">Status</th>
-                      <th className="p-3 font-medium">Currency</th>
-                      <th className="p-3 font-medium">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentTransactions.map((tx, i) => (
-                      <tr key={tx.id ?? `tx-${i}`} className="border-b last:border-0">
-                        <td className="p-3">
-                          <Badge variant="outline">{tx.type}</Badge>
-                        </td>
-                        <td className="p-3">
-                          <Badge
-                            variant={
-                              tx.status === "completed"
-                                ? "default"
-                                : tx.status === "failed"
-                                  ? "destructive"
-                                  : "secondary"
-                            }
-                          >
-                            {tx.status}
-                          </Badge>
-                        </td>
-                        <td className="p-3">{tx.currency}</td>
-                        <td className="p-3 text-muted-foreground">{formatDate(tx.createdAt)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </CardContent>
-            </Card>
-          )}
+          <RecentTransactions transactions={transactions} isLoading={transactionsLoading} />
         </section>
 
         <section>
@@ -406,7 +318,6 @@ export function DashboardPage() {
           </Card>
         </section>
 
-        {/* Exchange */}
         <section>
           <Card>
             <CardHeader>
@@ -492,55 +403,27 @@ export function DashboardPage() {
           </Card>
         </section>
 
-        <AlertDialog open={transferDialogOpen} onOpenChange={(open) => { setTransferDialogOpen(open); if (!open) setPendingTransfer(null); }}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm transfer</AlertDialogTitle>
-              <AlertDialogDescription>
-                {pendingTransfer && (
-                  <>
-                    Transfer {formatCurrency(Number(pendingTransfer.amount), pendingTransfer.fromCurrency)} to account{" "}
-                    <strong>{pendingTransfer.toAccountId}</strong>. Continue?
-                  </>
-                )}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={(e) => { e.preventDefault(); confirmTransfer(); }}
-                disabled={transferMutation.isPending}
-              >
-                {transferMutation.isPending ? "Transferring…" : "Confirm"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <TransferConfirmDialog
+          open={transferDialogOpen}
+          pending={pendingTransfer}
+          isPending={transferMutation.isPending}
+          onConfirm={confirmTransfer}
+          onOpenChange={(open) => {
+            setTransferDialogOpen(open)
+            if (!open) setPendingTransfer(null)
+          }}
+        />
 
-        <AlertDialog open={exchangeDialogOpen} onOpenChange={(open) => { setExchangeDialogOpen(open); if (!open) setPendingExchange(null); }}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm exchange</AlertDialogTitle>
-              <AlertDialogDescription>
-                {pendingExchange && (
-                  <>
-                    Exchange {formatCurrency(Number(pendingExchange.amount), pendingExchange.fromCurrency)} for{" "}
-                    {formatCurrency(pendingExchange.convertedAmount, pendingExchange.toCurrency)}. Rate: 1 USD = {USD_EUR_RATE} EUR. Continue?
-                  </>
-                )}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={(e) => { e.preventDefault(); confirmExchange(); }}
-                disabled={exchangeMutation.isPending}
-              >
-                {exchangeMutation.isPending ? "Exchanging…" : "Confirm"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <ExchangeConfirmDialog
+          open={exchangeDialogOpen}
+          pending={pendingExchange}
+          isPending={exchangeMutation.isPending}
+          onConfirm={confirmExchange}
+          onOpenChange={(open) => {
+            setExchangeDialogOpen(open)
+            if (!open) setPendingExchange(null)
+          }}
+        />
       </div>
     </DashboardLayout>
   )

@@ -4,24 +4,57 @@ import { useLedger } from "@/hooks/use-ledger"
 import { formatCurrency, formatDate } from "@/lib/format"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 
-const PAGE_SIZE = 20
+const LIMIT_OPTIONS = [10, 20, 50, 100] as const
 
 export function LedgerPage() {
   const [page, setPage] = useState(1)
-  const { data: entriesData, isLoading } = useLedger({ page, limit: PAGE_SIZE })
+  const [limit, setLimit] = useState(20)
+  const { data: entriesData, isLoading } = useLedger({ page, limit })
   const entries = Array.isArray(entriesData) ? entriesData : []
 
-  const hasMore = entries.length >= PAGE_SIZE
+  const hasMore = entries.length >= limit
   const showPagination = page > 1 || hasMore
 
   return (
     <DashboardLayout>
       <div className="container py-6 space-y-6">
-        <h1 className="text-2xl font-semibold">Ledger</h1>
-        <p className="text-muted-foreground text-sm">
-          Double-entry audit trail for your accounts. Entries are created when you transfer or exchange.
-        </p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold">Ledger</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Double-entry audit trail for your accounts. Entries are created when you transfer or exchange.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="ledger-limit" className="text-sm text-muted-foreground whitespace-nowrap">
+              Per page
+            </Label>
+            <Select
+              value={String(limit)}
+              onValueChange={(v) => { setLimit(Number(v)); setPage(1); }}
+            >
+              <SelectTrigger id="ledger-limit" className="w-[80px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LIMIT_OPTIONS.map((n) => (
+                  <SelectItem key={n} value={String(n)}>
+                    {n}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
         {isLoading ? (
           <p className="text-muted-foreground text-sm">Loading…</p>

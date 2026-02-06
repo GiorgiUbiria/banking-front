@@ -87,9 +87,14 @@ export async function getAccountBalance(
   };
 }
 
-export async function getTransactions(): Promise<Transaction[]> {
+export async function getTransactions(params?: {
+  type?: string;
+  page?: number;
+  limit?: number;
+}): Promise<Transaction[]> {
   const { data } = await api.get<{ transactions?: unknown[] } | unknown[]>(
     "/transactions",
+    { params },
   );
   const arr =
     data &&

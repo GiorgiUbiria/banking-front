@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { useTransactions } from "@/hooks/use-transactions"
 import { formatDate } from "@/lib/format"
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 
-const PAGE_SIZE = 10
+const LIMIT_OPTIONS = [10, 20, 50] as const
 const TYPE_OPTIONS = [
   { value: "all", label: "All types" },
   { value: "transfer", label: "Transfer" },
@@ -22,24 +22,18 @@ const TYPE_OPTIONS = [
 ] as const
 
 export function TransactionsPage() {
-  const { data: transactionsData, isLoading } = useTransactions()
-  const transactions = Array.isArray(transactionsData) ? transactionsData : []
-
   const [typeFilter, setTypeFilter] = useState<string>("all")
   const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(10)
 
-  const filtered = useMemo(() => {
-    if (typeFilter === "all" || !typeFilter) return transactions
-    return transactions.filter((tx) => tx.type === typeFilter)
-  }, [transactions, typeFilter])
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const currentPage = Math.min(page, totalPages)
-  const paginated = useMemo(
-    () =>
-      filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
-    [filtered, currentPage]
-  )
+  const { data: transactionsData, isLoading } = useTransactions({
+    type: typeFilter === "all" || !typeFilter ? undefined : typeFilter,
+    page,
+    limit,
+  })
+  const transactions = Array.isArray(transactionsData) ? transactionsData : []
+  const hasMore = transactions.length >= limit
+  const showPagination = page > 1 || hasMore
 
   return (
     <DashboardLayout>
@@ -62,17 +56,35 @@ export function TransactionsPage() {
                 ))}
               </SelectContent>
             </Select>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="limit" className="text-sm text-muted-foreground whitespace-nowrap">
+                Per page
+              </Label>
+              <Select
+                value={String(limit)}
+                onValueChange={(v) => { setLimit(Number(v)); setPage(1); }}
+              >
+                <SelectTrigger id="limit" className="w-[80px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LIMIT_OPTIONS.map((n) => (
+                    <SelectItem key={n} value={String(n)}>
+                      {n}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
         {isLoading ? (
           <p className="text-muted-foreground text-sm">Loading…</p>
-        ) : filtered.length === 0 ? (
+        ) : transactions.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground text-sm">
-              {transactions.length === 0
-                ? "No transactions yet."
-                : "No transactions match the selected filter."}
+              No transactions yet.
             </CardContent>
           </Card>
         ) : (
@@ -89,7 +101,7 @@ export function TransactionsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {paginated.map((tx, i) => (
+                    {transactions.map((tx, i) => (
                       <tr key={tx.id ?? `tx-${i}`} className="border-b last:border-0">
                         <td className="p-3">
                           <Badge variant="outline">{tx.type}</Badge>
@@ -116,25 +128,23 @@ export function TransactionsPage() {
               </CardContent>
             </Card>
 
-            {totalPages > 1 && (
+            {showPagination && (
               <div className="flex items-center justify-between gap-4">
-                <p className="text-muted-foreground text-sm">
-                  Page {currentPage} of {totalPages} ({filtered.length} transaction{filtered.length === 1 ? "" : "s"})
-                </p>
+                <p className="text-muted-foreground text-sm">Page {page}</p>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage <= 1}
+                    disabled={page <= 1}
                   >
                     Previous
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage >= totalPages}
+                    onClick={() => setPage((p) => p + 1)}
+                    disabled={!hasMore}
                   >
                     Next
                   </Button>

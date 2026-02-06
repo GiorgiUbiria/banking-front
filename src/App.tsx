@@ -5,6 +5,7 @@ import { ProtectedRoute } from "@/components/protected-route"
 import { LoginPage } from "@/pages/login-page"
 import { DashboardPage } from "@/pages/dashboard-page"
 import { TransactionsPage } from "@/pages/transactions-page"
+import { LedgerPage } from "@/pages/ledger-page"
 import { useAuthStore } from "@/stores/auth-store"
 
 function LoginRoute() {
@@ -32,6 +33,14 @@ export function App() {
             element={
               <ProtectedRoute>
                 <TransactionsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ledger"
+            element={
+              <ProtectedRoute>
+                <LedgerPage />
               </ProtectedRoute>
             }
           />

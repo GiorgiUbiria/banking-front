@@ -3,6 +3,7 @@ import type {
   Account,
   ExchangeRequest,
   ExchangeResponse,
+  LedgerEntry,
   LoginRequest,
   LoginResponse,
   MeResponse,
@@ -34,6 +35,18 @@ function normalizeTransaction(raw: Record<string, unknown>): Transaction {
   };
 }
 
+function normalizeLedgerEntry(raw: Record<string, unknown>): LedgerEntry {
+  return {
+    id: Number(raw.ID ?? raw.id),
+    accountID: Number(raw.AccountID ?? raw.accountID ?? 0),
+    txID: Number(raw.TxID ?? raw.txID ?? 0),
+    amount: Number(raw.Amount ?? raw.amount ?? 0),
+    currency: String(raw.Currency ?? raw.currency ?? ""),
+    createdAt: String(raw.CreatedAt ?? raw.createdAt ?? ""),
+    updatedAt: String(raw.UpdatedAt ?? raw.updatedAt ?? ""),
+  };
+}
+
 export const queryKeys = {
   me: ["auth", "me"] as const,
   accounts: ["accounts"] as const,
@@ -41,6 +54,8 @@ export const queryKeys = {
   transactions: ["transactions"] as const,
   transactionsFiltered: (type?: string, page?: number, limit?: number) =>
     ["transactions", { type, page, limit }] as const,
+  ledger: (params?: { tx_id?: number; account_id?: number; page?: number; limit?: number }) =>
+    ["ledger", params] as const,
 };
 
 export async function login(body: LoginRequest): Promise<LoginResponse> {
@@ -87,6 +102,19 @@ export async function getTransactions(): Promise<Transaction[]> {
         : [];
   return arr.map((item) =>
     normalizeTransaction(item as Record<string, unknown>),
+  );
+}
+
+export async function getLedger(params?: {
+  tx_id?: number;
+  account_id?: number;
+  page?: number;
+  limit?: number;
+}): Promise<LedgerEntry[]> {
+  const { data } = await api.get<unknown>("/ledger", { params });
+  const arr = Array.isArray(data) ? data : [];
+  return arr.map((item) =>
+    normalizeLedgerEntry(item as Record<string, unknown>),
   );
 }
 

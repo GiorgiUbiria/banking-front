@@ -26,6 +26,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <Link to="/transactions" className="text-sm font-medium text-muted-foreground hover:text-foreground">
               Transactions
             </Link>
+            <Link to="/ledger" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+              Ledger
+            </Link>
           </nav>
           <div className="flex items-center gap-3">
             <span className="text-muted-foreground text-sm">{user?.name ?? user?.email}</span>

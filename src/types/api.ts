@@ -57,3 +57,13 @@ export interface AccountBalanceResponse {
   currency: string;
   balance: number;
 }
+
+export interface LedgerEntry {
+  id: number;
+  accountID: number;
+  txID: number;
+  amount: number;
+  currency: string;
+  createdAt: string;
+  updatedAt: string;
+}

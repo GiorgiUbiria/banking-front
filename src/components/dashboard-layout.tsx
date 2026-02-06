@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom"
+import { useQueryClient } from "@tanstack/react-query"
 import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 
@@ -9,8 +10,10 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, clearAuth } = useAuth()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   function handleLogout() {
+    queryClient.clear()
     clearAuth()
     navigate("/login", { replace: true })
   }

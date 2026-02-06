@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
+import { useQueryClient } from "@tanstack/react-query"
 import { z } from "zod"
 import { login, getMe } from "@/api"
 import { setAuthToken } from "@/lib/api-client"
@@ -31,6 +32,7 @@ type LoginFormValues = z.infer<typeof loginSchema>
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const queryClient = useQueryClient()
   const setAuth = useAuthStore((s) => s.setAuth)
 
   const [email, setEmail] = useState("")
@@ -63,6 +65,7 @@ export function LoginPage() {
       setAuthToken(token)
       const user = await getMe()
       setAuth(token, user)
+      queryClient.clear()
       navigate(from, { replace: true })
     } catch (err: unknown) {
       const message =

@@ -2,6 +2,16 @@ import { useState } from "react"
 import { z } from "zod"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   Card,
   CardContent,
   CardDescription,
@@ -30,7 +40,7 @@ import { useTransactions } from "@/hooks/use-transactions"
 import { useTransfer } from "@/hooks/use-transfer"
 import { useExchange } from "@/hooks/use-exchange"
 import { formatCurrency, formatDate } from "@/lib/format"
-import type { Account } from "@/types/api"
+import type { Account, TransferRequest } from "@/types/api"
 
 const USD_EUR_RATE = 0.92
 
@@ -75,6 +85,22 @@ export function DashboardPage() {
   const [exchangeError, setExchangeError] = useState<string | null>(null)
   const [exchangeFieldErrors, setExchangeFieldErrors] = useState<Record<string, string>>({})
 
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false)
+  const [pendingTransfer, setPendingTransfer] = useState<{
+    payload: TransferRequest
+    fromCurrency: string
+    amount: string
+    toAccountId: number
+  } | null>(null)
+  const [exchangeDialogOpen, setExchangeDialogOpen] = useState(false)
+  const [pendingExchange, setPendingExchange] = useState<{
+    payload: { from_account_id: number; to_account_id: number; amount: string }
+    fromCurrency: string
+    toCurrency: string
+    amount: string
+    convertedAmount: number
+  } | null>(null)
+
   const usdAccount = accounts.find((a) => a.currency === "USD")
   const eurAccount = accounts.find((a) => a.currency === "EUR")
 
@@ -106,27 +132,35 @@ export function DashboardPage() {
       setTransferError("Insufficient funds")
       return
     }
-    transferMutation.mutate(
-      {
-        from_account_id: result.data.from_account_id,
-        to_account_id: result.data.to_account_id,
-        amount: result.data.amount,
+    setPendingTransfer({
+      payload: result.data,
+      fromCurrency: fromAccount?.currency ?? "",
+      amount: result.data.amount,
+      toAccountId: result.data.to_account_id,
+    })
+    setTransferDialogOpen(true)
+  }
+
+  function confirmTransfer() {
+    if (!pendingTransfer) return
+    transferMutation.mutate(pendingTransfer.payload, {
+      onSuccess: () => {
+        setTransferDialogOpen(false)
+        setPendingTransfer(null)
+        setTransferToId("")
+        setTransferAmount("")
+        setTransferFromId("")
       },
-      {
-        onSuccess: () => {
-          setTransferToId("")
-          setTransferAmount("")
-          setTransferFromId("")
-        },
-        onError: (err: unknown) => {
-          const msg =
-            err && typeof err === "object" && "response" in err
-              ? String((err as { response?: { data?: unknown } }).response?.data ?? "Transfer failed")
-              : "Transfer failed"
-          setTransferError(msg)
-        },
-      }
-    )
+      onError: (err: unknown) => {
+        const msg =
+          err && typeof err === "object" && "response" in err
+            ? String((err as { response?: { data?: unknown } }).response?.data ?? "Transfer failed")
+            : "Transfer failed"
+        setTransferError(msg)
+        setTransferDialogOpen(false)
+        setPendingTransfer(null)
+      },
+    })
   }
 
   function handleExchange(e: React.SubmitEvent<HTMLFormElement>) {
@@ -159,26 +193,43 @@ export function DashboardPage() {
       setExchangeError("Insufficient funds")
       return
     }
-    exchangeMutation.mutate(
-      {
-        from_account_id: result.data.from_account_id,
-        to_account_id: result.data.to_account_id,
-        amount: result.data.amount,
+    const toAccount = getAccountById(result.data.to_account_id)
+    const amountNum = Number(result.data.amount)
+    const converted =
+      fromAccount?.currency === "USD"
+        ? amountNum * USD_EUR_RATE
+        : fromAccount?.currency === "EUR"
+          ? amountNum / USD_EUR_RATE
+          : 0
+    setPendingExchange({
+      payload: result.data,
+      fromCurrency: fromAccount?.currency ?? "",
+      toCurrency: toAccount?.currency ?? "",
+      amount: result.data.amount,
+      convertedAmount: converted,
+    })
+    setExchangeDialogOpen(true)
+  }
+
+  function confirmExchange() {
+    if (!pendingExchange) return
+    exchangeMutation.mutate(pendingExchange.payload, {
+      onSuccess: () => {
+        setExchangeDialogOpen(false)
+        setPendingExchange(null)
+        setExchangeAmount("")
+        setExchangeFromId("")
       },
-      {
-        onSuccess: () => {
-          setExchangeAmount("")
-          setExchangeFromId("")
-        },
-        onError: (err: unknown) => {
-          const msg =
-            err && typeof err === "object" && "response" in err
-              ? String((err as { response?: { data?: unknown } }).response?.data ?? "Exchange failed")
-              : "Exchange failed"
-          setExchangeError(msg)
-        },
-      }
-    )
+      onError: (err: unknown) => {
+        const msg =
+          err && typeof err === "object" && "response" in err
+            ? String((err as { response?: { data?: unknown } }).response?.data ?? "Exchange failed")
+            : "Exchange failed"
+        setExchangeError(msg)
+        setExchangeDialogOpen(false)
+        setPendingExchange(null)
+      },
+    })
   }
 
   const exchangeFromAccount = exchangeFromId ? getAccountById(Number(exchangeFromId)) : null
@@ -218,7 +269,6 @@ export function DashboardPage() {
           )}
         </section>
 
-        {/* Last 5 transactions */}
         <section>
           <h2 className="text-sm font-medium text-muted-foreground mb-3">Recent transactions</h2>
           {transactionsLoading ? (
@@ -267,7 +317,6 @@ export function DashboardPage() {
           )}
         </section>
 
-        {/* Transfer */}
         <section>
           <Card>
             <CardHeader>
@@ -442,6 +491,56 @@ export function DashboardPage() {
             </CardContent>
           </Card>
         </section>
+
+        <AlertDialog open={transferDialogOpen} onOpenChange={(open) => { setTransferDialogOpen(open); if (!open) setPendingTransfer(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm transfer</AlertDialogTitle>
+              <AlertDialogDescription>
+                {pendingTransfer && (
+                  <>
+                    Transfer {formatCurrency(Number(pendingTransfer.amount), pendingTransfer.fromCurrency)} to account{" "}
+                    <strong>{pendingTransfer.toAccountId}</strong>. Continue?
+                  </>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => { e.preventDefault(); confirmTransfer(); }}
+                disabled={transferMutation.isPending}
+              >
+                {transferMutation.isPending ? "Transferring…" : "Confirm"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={exchangeDialogOpen} onOpenChange={(open) => { setExchangeDialogOpen(open); if (!open) setPendingExchange(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm exchange</AlertDialogTitle>
+              <AlertDialogDescription>
+                {pendingExchange && (
+                  <>
+                    Exchange {formatCurrency(Number(pendingExchange.amount), pendingExchange.fromCurrency)} for{" "}
+                    {formatCurrency(pendingExchange.convertedAmount, pendingExchange.toCurrency)}. Rate: 1 USD = {USD_EUR_RATE} EUR. Continue?
+                  </>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => { e.preventDefault(); confirmExchange(); }}
+                disabled={exchangeMutation.isPending}
+              >
+                {exchangeMutation.isPending ? "Exchanging…" : "Confirm"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   )

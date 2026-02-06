@@ -10,8 +10,8 @@ export interface Account {
 export interface Transaction {
   id: number;
   userID: number;
-  type: "transfer" | "exchange";
-  status: "pending" | "completed" | "failed";
+  type: "transfer" | "exchange" | string;
+  status: "pending" | "completed" | "failed" | string;
   currency: string;
   createdAt: string;
   updatedAt: string;

@@ -3,6 +3,14 @@ import { DashboardLayout } from "@/components/layout"
 import { useLedger } from "@/hooks/use-ledger"
 import { formatCurrency, formatDate } from "@/lib/format"
 import { Card, CardContent } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -68,31 +76,31 @@ export function LedgerPage() {
           <>
             <Card className="shadow-(--shadow-card) border-border/80 overflow-hidden">
               <CardContent className="p-0">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Account ID</th>
-                      <th>Tx ID</th>
-                      <th>Amount</th>
-                      <th>Currency</th>
-                      <th>Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Account ID</TableHead>
+                      <TableHead>Tx ID</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Currency</TableHead>
+                      <TableHead>Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {entries.map((entry, i) => (
-                      <tr key={entry.id ?? `ledger-${i}`}>
-                        <td>{entry.accountID}</td>
-                        <td>{entry.txID}</td>
-                        <td className="font-mono tabular-nums">
+                      <TableRow key={entry.id ?? `ledger-${i}`}>
+                        <TableCell>{entry.accountID}</TableCell>
+                        <TableCell>{entry.txID}</TableCell>
+                        <TableCell className="mono">
                           {entry.amount >= 0 ? "+" : ""}
                           {formatCurrency(entry.amount, entry.currency)}
-                        </td>
-                        <td>{entry.currency}</td>
-                        <td className="text-muted-foreground">{formatDate(entry.createdAt)}</td>
-                      </tr>
+                        </TableCell>
+                        <TableCell>{entry.currency}</TableCell>
+                        <TableCell className="muted">{formatDate(entry.createdAt)}</TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
 

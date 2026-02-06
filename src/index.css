@@ -159,31 +159,31 @@
   margin-bottom: 0;
 }
 
-/* Table styling used in cards */
-.data-table {
-  @apply w-full text-sm;
+.app-table {
+  border-collapse: collapse;
+  @apply bg-card;
 }
-.data-table thead tr {
-  @apply border-b border-border bg-muted/40;
+.app-table__header {
+  @apply border-b-2 border-border bg-card;
 }
-.data-table thead th:first-child {
-  border-radius: var(--radius) 0 0 0;
+.app-table__header .app-table__row {
+  @apply border-b-0 hover:bg-transparent;
 }
-.data-table thead th:last-child {
-  border-radius: 0 var(--radius) 0 0;
+.app-table__head {
+  @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground;
 }
-.data-table th {
-  @apply px-4 py-3 text-left font-medium text-muted-foreground;
+.app-table__body {
+  @apply bg-card;
 }
-.data-table tbody tr {
-  @apply border-b border-border/80 transition-colors last:border-0 hover:bg-muted/30;
+.app-table__body .app-table__row {
+  @apply border-b border-border transition-colors last:border-b-0 hover:bg-muted/30;
 }
-.data-table td {
-  @apply px-4 py-3;
+.app-table__cell {
+  @apply px-4 py-3 text-foreground;
 }
-.data-table tbody tr:last-child td:first-child {
-  border-radius: 0 0 0 var(--radius);
+.app-table__cell.muted {
+  @apply text-muted-foreground;
 }
-.data-table tbody tr:last-child td:last-child {
-  border-radius: 0 0 var(--radius) 0;
+.app-table__cell.mono {
+  @apply font-mono tabular-nums text-foreground;
 }

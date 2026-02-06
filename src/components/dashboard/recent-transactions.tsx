@@ -1,4 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { formatDate } from "@/lib/format"
 import type { Transaction } from "@/types/api"
@@ -19,24 +27,24 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
   return (
     <Card className="shadow-(--shadow-card) border-border/80 overflow-hidden">
       <CardContent className="p-0">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Type</th>
-              <th>Status</th>
-              <th>Currency</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Type</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Currency</TableHead>
+              <TableHead>Date</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {recent.map((tx, i) => (
-              <tr key={tx.id ?? `tx-${i}`}>
-                <td>
+              <TableRow key={tx.id ?? `tx-${i}`}>
+                <TableCell>
                   <Badge variant="outline" className="font-medium">
                     {tx.type}
                   </Badge>
-                </td>
-                <td>
+                </TableCell>
+                <TableCell>
                   <Badge
                     variant={
                       tx.status === "completed"
@@ -48,13 +56,13 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
                   >
                     {tx.status}
                   </Badge>
-                </td>
-                <td>{tx.currency}</td>
-                <td className="text-muted-foreground">{formatDate(tx.createdAt)}</td>
-              </tr>
+                </TableCell>
+                <TableCell>{tx.currency}</TableCell>
+                <TableCell className="muted">{formatDate(tx.createdAt)}</TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   )

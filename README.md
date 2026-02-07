@@ -2,6 +2,15 @@
 
 React frontend for the Mini Banking Platform assessment. Provides login, dashboard (balances, transfer, exchange), transaction history, and ledger views.
 
+## Repository & deployment
+
+| | URL |
+|---|-----|
+| **Repository** | https://github.com/GiorgiUbiria/banking-front |
+| **Deployed app** | https://inquire-banking.netlify.app/ |
+
+Backend API: https://banking-system-7hqp.onrender.com/
+
 ## Stack
 
 - **React 19** + **TypeScript**

@@ -31,6 +31,7 @@ import { useAccounts } from "@/hooks/use-accounts"
 import { useTransactions } from "@/hooks/use-transactions"
 import { useTransfer } from "@/hooks/use-transfer"
 import { useExchange } from "@/hooks/use-exchange"
+import { useReconcile } from "@/hooks/use-reconcile"
 import { formatCurrency } from "@/lib/format"
 import { USD_EUR_RATE } from "@/lib/constants"
 import { transferSchema, exchangeSchema } from "@/lib/schemas"
@@ -41,6 +42,7 @@ export function DashboardPage() {
   const { data: transactionsData, isLoading: transactionsLoading } = useTransactions()
   const transferMutation = useTransfer()
   const exchangeMutation = useExchange()
+  const reconcileMutation = useReconcile()
 
   const accounts = Array.isArray(accountsData) ? accountsData : []
   const transactions = Array.isArray(transactionsData) ? transactionsData : []
@@ -220,7 +222,31 @@ export function DashboardPage() {
         <h1 className="page-title">Dashboard</h1>
 
         <section className="page-section">
-          <h2 className="section-title">Balances</h2>
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <h2 className="section-title mb-0">Balances</h2>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => reconcileMutation.mutate()}
+              disabled={reconcileMutation.isPending}
+            >
+              {reconcileMutation.isPending ? "Verifying…" : "Verify balances"}
+            </Button>
+          </div>
+          {reconcileMutation.data && (
+            <p
+              className={`text-sm mb-2 ${
+                reconcileMutation.data.all_match ? "text-muted-foreground" : "text-destructive"
+              }`}
+            >
+              {reconcileMutation.data.all_match
+                ? "All balances OK"
+                : `Mismatch: ${reconcileMutation.data.accounts
+                    .filter((a) => !a.match)
+                    .map((a) => `${a.currency} (stored ${a.stored_balance} vs ledger ${a.ledger_sum})`)
+                    .join("; ")}`}
+            </p>
+          )}
           <BalanceCards accounts={accounts} isLoading={accountsLoading} />
         </section>
 

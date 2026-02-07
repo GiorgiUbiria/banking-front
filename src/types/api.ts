@@ -58,6 +58,19 @@ export interface AccountBalanceResponse {
   balance: number;
 }
 
+export interface ReconcileEntry {
+  account_id: number;
+  currency: string;
+  stored_balance: number;
+  ledger_sum: number;
+  match: boolean;
+}
+
+export interface ReconcileResponse {
+  accounts: ReconcileEntry[];
+  all_match: boolean;
+}
+
 export interface LedgerEntry {
   id: number;
   accountID: number;

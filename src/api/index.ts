@@ -5,6 +5,7 @@ import type {
   LoginRequest,
   LoginResponse,
   MeResponse,
+  ReconcileResponse,
   TransferRequest,
   TransferResponse,
 } from "@/types/api"
@@ -27,6 +28,11 @@ export async function getAccounts() {
   const { data } = await api.get<unknown>("/accounts")
   const arr = Array.isArray(data) ? data : []
   return arr.map((item) => normalizeAccount(item as Record<string, unknown>))
+}
+
+export async function getReconcile(): Promise<ReconcileResponse> {
+  const { data } = await api.get<ReconcileResponse>("/accounts/reconcile")
+  return data
 }
 
 export async function getAccountBalance(id: number) {
